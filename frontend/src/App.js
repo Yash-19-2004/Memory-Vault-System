@@ -2,16 +2,21 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 
-function App() {
+const API = process.env.REACT_APP_API_URL;
 
+function App() {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [tag, setTag] = useState("");
   const [memories, setMemories] = useState([]);
 
   async function fetchData() {
-    const res = await axios.get("http://localhost:5000/memories");
-    setMemories(res.data);
+    try {
+      const res = await axios.get(`${API}/memories`);
+      setMemories(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   useEffect(() => {
@@ -21,32 +26,39 @@ function App() {
   async function addMemory() {
     if (!title || !note) return;
 
-    await axios.post("http://localhost:5000/memory", {
-      title,
-      note,
-      tag
-    });
+    try {
+      await axios.post(`${API}/memory`, {
+        title,
+        note,
+        tag,
+      });
 
-    setTitle("");
-    setNote("");
-    setTag("");
-    fetchData();
+      setTitle("");
+      setNote("");
+      setTag("");
+
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function deleteMemory(id) {
-    await axios.delete("http://localhost:5000/memory/" + id);
-    fetchData();
+    try {
+      await axios.delete(`${API}/memory/${id}`);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (
     <div className="app">
-
       <div className="header">
         Memory Vault System
       </div>
 
       <div className="heroBox">
-
         <h2>Welcome to Your Personal Life Vault</h2>
 
         <p>
@@ -59,11 +71,9 @@ function App() {
           <div>Active Vault: Online</div>
           <div>Storage: Unlimited</div>
         </div>
-
       </div>
 
       <div className="inputBox">
-
         <input
           placeholder="Memory Title (e.g. First Job, Trip, Achievement)"
           value={title}
@@ -83,14 +93,12 @@ function App() {
         />
 
         <button onClick={addMemory}>
-          Save Memory 
+          Save Memory
         </button>
-
       </div>
 
       {memories.length === 0 && (
         <div className="emptyState">
-
           <h2>Your Vault is Empty</h2>
 
           <p>
@@ -99,19 +107,18 @@ function App() {
           </p>
 
           <div className="suggestions">
-            “My first internship experience”  
-            “Trip to Goa 2024”  
-            “Coding journey started”  
+            “My first internship experience”
+            <br />
+            “Trip to Goa 2024”
+            <br />
+            “Coding journey started”
           </div>
-
         </div>
       )}
 
       <div className="grid">
-
-        {memories.map(m => (
-          <div className="card" key={m.id}>
-
+        {memories.map((m) => (
+          <div className="card" key={m._id}>
             <div className="cardTop">
               <h3>{m.title}</h3>
               <span className="tag">{m.tag}</span>
@@ -122,19 +129,15 @@ function App() {
             <div className="cardBottom">
               <small>{m.date}</small>
 
-              <button onClick={() => deleteMemory(m.id)}>
+              <button onClick={() => deleteMemory(m._id)}>
                 Delete
               </button>
             </div>
-
           </div>
         ))}
-
       </div>
-
     </div>
   );
 }
 
 export default App;
-
